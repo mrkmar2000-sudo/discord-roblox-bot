@@ -387,22 +387,92 @@ async def simulatebind_rank_autocomplete(interaction: discord.Interaction, curre
             results.append(app_commands.Choice(name=f"{role['rank']} – {role['id']}", value=role["rank"]))
     return results[:25]
 
-# --- Replit Keep-Alive ---
-app = Flask("")
+from discord import Embed
 
-@app.route("/")
-def home():
-    return "Bot is alive!"
+@bot.tree.command(name="staffguide", description="Send the Roblox Rank Bot Staff Guide.")
+async def staffguide(interaction: discord.Interaction):
+    if not is_staff(interaction.user):
+        await interaction.response.send_message("❌ You don't have permission to use this command.", ephemeral=True)
+        return
 
-def run():
-    app.run(host="0.0.0.0", port=8080)
+    embed = Embed(
+        title="📖 Roblox Rank Bot – Quick Staff Guide",
+        description="💡 *Pin this message so staff can always find it easily!*",
+        color=0x5865F2  # Discord blurple
+    )
 
-def keep_alive():
-    t = Thread(target=run)
-    t.start()
+    embed.add_field(
+        name="🔑 Staff-Only Commands",
+        value=(
+            "**1️⃣ Verify a User**\n"
+            "Users must link their Roblox account before you can rank them:\n"
+            "```/verify roblox_username:<username>\n"
+            "/verifyconfirm code:<code>```"
+        ),
+        inline=False
+    )
 
-keep_alive()
-if TOKEN:
+    embed.add_field(
+        name="2️⃣ Rank a User",
+        value=(
+            "Updates their Roblox group rank **and** Discord roles:\n"
+            "```/rank user:@DiscordUser rank:<roblox_rank_number>```\n"
+            "✅ The bot will:\n"
+            "• Change their **Roblox group rank**\n"
+            "• Update their **Discord roles**\n"
+            "• Log everything in the **ranking webhook channel**"
+        ),
+        inline=False
+    )
+
+    embed.add_field(
+        name="3️⃣ Manage Rank Binds",
+        value=(
+            "Link or unlink Discord roles to Roblox ranks:\n"
+            "```/rankbinds add rank:<roblox_rank_number> role:@Role\n"
+            "/rankbinds remove rank:<roblox_rank_number> role:@Role\n"
+            "/rankbinds list```\n"
+            "💡 You can bind **multiple roles** to a single Roblox rank."
+        ),
+        inline=False
+    )
+
+    embed.add_field(
+        name="4️⃣ Force Sync Roles",
+        value=(
+            "Re-check a user’s Roblox rank and update their roles:\n"
+            "```/syncroles user:@DiscordUser```"
+        ),
+        inline=False
+    )
+
+    embed.add_field(
+        name="5️⃣ Simulate Rank Binds",
+        value=(
+            "Preview what roles a rank would give — no changes applied:\n"
+            "```/simulatebind rank:<roblox_rank_number>```\n"
+            "Or for a specific user:\n"
+            "```/simulatebind rank:<roblox_rank_number> user:@DiscordUser```\n"
+            "Shows which roles would be **added** or **removed**."
+        ),
+        inline=False
+    )
+
+    embed.add_field(
+        name="📌 Best Practices",
+        value=(
+            "✅ **Verify users first** before ranking\n"
+            "🔍 **Use `/simulatebind`** to avoid mistakes\n"
+            "🛠 **Keep rank binds updated** so Discord stays in sync\n"
+            "🔒 **Never share your Roblox cookie** — it stays safe in `.env`"
+        ),
+        inline=False
+    )
+
+    await interaction.response.send_message(embed=embed)
+
+
+# --- Entry Point ---
+if __name__ == "__main__":
     bot.run(TOKEN)
-else:
-    print("❌ DISCORD_TOKEN environment variable not found!")
+
